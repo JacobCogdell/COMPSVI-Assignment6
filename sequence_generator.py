@@ -6,6 +6,8 @@ Generates DNA sequences of varying sizes for testing LCS algorithms.
 import random
 import json
 import os
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
 
 def generate_sequences():
     """Generate DNA sequence test cases of varying sizes."""

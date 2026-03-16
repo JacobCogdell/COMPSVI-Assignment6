@@ -5,6 +5,9 @@ Implement three versions: naive recursive, memoization, and tabulation.
 
 import json
 import time
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
+
 
 
 # ============================================================================
@@ -35,7 +38,23 @@ def lcs_recursive(seq1, seq2):
     # Hint: If last characters match, LCS length = 1 + LCS of remaining sequences
     # Hint: If last characters don't match, try removing last char from each sequence, take max
     
-    pass  # Delete this and write your code
+    # Base case: if either sequence is empty, LCS is 0
+    if len(seq1) == 0 or len(seq2) == 0:
+        return 0
+
+    # If last characters match:
+    #   include that character and recurse on the remaining prefixes
+    if seq1[-1] == seq2[-1]:
+        return 1 + lcs_recursive(seq1[:-1], seq2[:-1])
+
+    # If last characters don't match:
+    #   try removing one char from seq1 OR one char from seq2
+    #   take the best result
+    return max(
+        lcs_recursive(seq1[:-1], seq2),
+        lcs_recursive(seq1, seq2[:-1])
+    )
+
 
 
 # ============================================================================
@@ -64,8 +83,36 @@ def lcs_memoization(seq1, seq2):
     # Hint: Use tuple of (i, j) as key where i, j are positions in sequences
     # Hint: Check cache before computing, store result before returning
     # Hint: You may want to create a helper function that takes indices
-    
-    pass  # Delete this and write your code
+
+    # Cache maps (i, j) to LCS length of seq1[0..i] and seq2[0..j]
+    cache = {}
+
+    def helper(i, j):
+        # If either index hits 0, one string is empty and LCS = 0
+        if i == 0 or j == 0:
+            return 0
+
+        # Check cache and if result is already computed just return the answer
+        if (i, j) in cache:
+            return cache[(i, j)]
+
+        # First time we compute this subproblem, we do the same logic as recursive solution
+        # If last characters match
+        if seq1[i - 1] == seq2[j - 1]:
+            result = 1 + helper(i - 1, j - 1)
+        else:
+            # Otherwise branch: drop from seq1 OR seq2
+            result = max(
+                helper(i - 1, j),
+                helper(i, j - 1)
+            )
+
+        # Store result in cache before returning
+        cache[(i, j)] = result
+        return result
+
+    # Start recursion from full lengths
+    return helper(len(seq1), len(seq2))
 
 
 # ============================================================================
@@ -96,7 +143,25 @@ def lcs_tabulation(seq1, seq2):
     # Hint: If characters match: dp[i][j] = dp[i-1][j-1] + 1
     # Hint: If characters don't match: dp[i][j] = max(dp[i-1][j], dp[i][j-1])
     
-    pass  # Delete this and write your code
+    n, m = len(seq1), len(seq2)
+
+    # Create a (n+1) x (m+1) table initialized to 0
+    dp = [[0] * (m + 1) for _ in range(n + 1)]
+
+    # Fill the table row by row
+    for i in range(1, n + 1):
+        for j in range(1, m + 1):
+
+            # If characters match, extend the diagonal value
+            if seq1[i - 1] == seq2[j - 1]:
+                dp[i][j] = dp[i - 1][j - 1] + 1
+
+            # Otherwise take the best of left or top cell
+            else:
+                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+
+    # The bottom-right cell contains the LCS length
+    return dp[n][m]
 
 
 # ============================================================================
@@ -240,8 +305,8 @@ if __name__ == "__main__":
     
     # Uncomment these as you complete each part:
     
-    # test_small_cases()
-    # time_recursive()
-    # compare_all_approaches()
+    test_small_cases()
+    time_recursive()
+    compare_all_approaches()
     
     print("\n⚠ Uncomment the test functions in the main block to run tests!")
